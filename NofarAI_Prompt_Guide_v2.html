@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NofarAI · מדריך פרומפטים לתמונות AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET & ROOT ─── */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --v:#3C2464;
+  --v2:#5B3A9E;
+  --deep:#9B72CC;
+  --lav:#C8B4E8;
+  --lav2:#F2E8FF;
+  --gold:#F5D97A;
+  --gold2:#FFF8E6;
+  --ink:#16100F;
+  --muted:#888;
+  --border:rgba(60,36,100,0.1);
+  --sans:'Space Grotesk',sans-serif;
+  --display:'Syne',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:#FAFAF8;color:var(--ink);min-height:100vh;direction:rtl;overflow-x:hidden}
+
+/* ─── NAV BAR ─── */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(250,250,248,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between}
+.topbar-logo{display:flex;align-items:center;gap:10px}
+.topbar-logo svg{width:28px;height:28px}
+.topbar-name{font-family:var(--display);font-size:20px;font-weight:800;color:var(--v);letter-spacing:-0.5px}
+.topbar-name span{color:var(--gold)}
+.topbar-sub{font-size:10px;font-weight:500;letter-spacing:0.2em;text-transform:uppercase;color:var(--deep)}
+
+/* ─── HERO ─── */
+.hero{background:var(--v);min-height:60vh;display:flex;align-items:center;position:relative;overflow:hidden;padding:5rem 0}
+.hero::before{content:'';position:absolute;top:-120px;right:-120px;width:480px;height:480px;border-radius:50%;background:rgba(200,180,232,0.06)}
+.hero::after{content:'';position:absolute;bottom:-80px;left:-80px;width:320px;height:320px;border-radius:50%;background:rgba(245,217,122,0.05)}
+.hero-inner{max-width:900px;margin:0 auto;padding:0 2rem;position:relative;z-index:1}
+.hero-kicker{font-size:10px;font-weight:600;letter-spacing:0.28em;text-transform:uppercase;color:var(--lav);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.hero-kicker::before{content:'';width:28px;height:1.5px;background:var(--gold)}
+.hero-h1{font-family:var(--display);font-size:clamp(42px,7vw,80px);font-weight:800;color:#fff;letter-spacing:-3px;line-height:0.95;margin-bottom:24px}
+.hero-h1 em{color:var(--gold);font-style:normal}
+.hero-desc{font-size:15px;font-weight:300;color:rgba(200,180,232,0.8);line-height:1.7;max-width:520px;margin-bottom:36px}
+.hero-chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.07);border:1px solid rgba(200,180,232,0.25);border-radius:100px;padding:7px 16px;font-size:11px;font-weight:500;color:var(--lav);letter-spacing:0.06em}
+.chip-dot{width:6px;height:6px;border-radius:50%;background:var(--gold)}
+
+/* ─── SECTION LAYOUT ─── */
+.section{padding:5rem 0}
+.section-inner{max-width:900px;margin:0 auto;padding:0 2rem}
+.section--dark{background:var(--v)}
+.section--soft{background:var(--lav2)}
+.section--gold{background:var(--gold2)}
+
+/* ─── STEP HEADER (like the reference) ─── */
+.step-row{display:flex;align-items:flex-start;gap:0;margin-bottom:2.5rem}
+.step-num{font-family:var(--display);font-size:clamp(80px,14vw,120px);font-weight:800;line-height:0.85;color:var(--lav);opacity:0.35;user-select:none;min-width:clamp(80px,14vw,120px);flex-shrink:0;margin-top:-8px}
+.step-num--dark{color:#fff;opacity:0.15}
+.step-content{flex:1;padding-top:12px}
+.step-label{font-size:9px;font-weight:700;letter-spacing:0.28em;text-transform:uppercase;color:var(--deep);margin-bottom:10px}
+.step-label--dark{color:var(--lav)}
+.step-h2{font-family:var(--display);font-size:clamp(26px,4.5vw,44px);font-weight:800;color:var(--v);letter-spacing:-1.5px;line-height:1;margin-bottom:14px}
+.step-h2--dark{color:#fff}
+.step-h2 em{color:var(--gold);font-style:normal}
+.step-body{font-size:14px;font-weight:300;color:#555;line-height:1.8}
+.step-body--dark{color:rgba(200,180,232,0.75)}
+.step-body strong{color:var(--v);font-weight:600}
+.step-body--dark strong{color:var(--gold)}
+
+/* ─── CALLOUT BOXES ─── */
+.callout{border-radius:14px;padding:1.5rem 1.75rem;margin-top:1.5rem}
+.callout--violet{background:var(--v);border:1.5px solid var(--v2)}
+.callout--lav{background:var(--lav2);border:1.5px solid var(--lav)}
+.callout--gold{background:var(--gold2);border:1.5px solid rgba(245,217,122,0.5)}
+.callout-label{font-size:9px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:10px}
+.callout--violet .callout-label{color:var(--lav)}
+.callout--lav .callout-label{color:var(--v)}
+.callout--gold .callout-label{color:var(--deep)}
+.callout-text{font-size:13.5px;line-height:1.75}
+.callout--violet .callout-text{color:rgba(200,180,232,0.9)}
+.callout--lav .callout-text{color:#444}
+.callout--gold .callout-text{color:#5a4a2a}
+.callout-text strong{font-weight:600}
+.callout--violet .callout-text strong{color:var(--gold)}
+.callout--lav .callout-text strong{color:var(--v)}
+
+/* ─── STEPS ROW (how it works) ─── */
+.how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:2rem}
+.how-card{background:#fff;border:1px solid var(--border);border-top:3px solid var(--gold);border-radius:14px;padding:1.5rem}
+.how-num{font-family:var(--display);font-size:32px;font-weight:800;color:var(--lav);line-height:1;margin-bottom:10px}
+.how-title{font-size:13px;font-weight:700;color:var(--v);margin-bottom:8px}
+.how-body{font-size:12px;font-weight:300;color:#666;line-height:1.7}
+
+/* ─── NANO BANANA BOX ─── */
+.nano-box{background:var(--v);border-radius:20px;padding:2.5rem;margin-top:2rem;position:relative;overflow:hidden}
+.nano-box::after{content:'🍌';position:absolute;top:-10px;left:20px;font-size:80px;opacity:0.1;line-height:1}
+.nano-title{font-family:var(--display);font-size:26px;font-weight:800;color:var(--gold);letter-spacing:-0.5px;margin-bottom:8px}
+.nano-sub{font-size:13px;color:var(--lav);line-height:1.7;margin-bottom:20px;font-weight:300}
+.nano-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.nano-step{background:rgba(255,255,255,0.06);border:1px solid rgba(200,180,232,0.2);border-radius:12px;padding:1rem}
+.nano-step-num{font-family:var(--display);font-size:24px;font-weight:800;color:var(--gold);opacity:0.6;margin-bottom:6px}
+.nano-step-title{font-size:11px;font-weight:600;color:#fff;margin-bottom:4px}
+.nano-step-body{font-size:11px;font-weight:300;color:rgba(200,180,232,0.7);line-height:1.6}
+.nano-tag{display:inline-block;background:var(--gold);color:var(--v);font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:0.1em;margin-bottom:16px}
+
+/* ─── GENDER TOGGLE ─── */
+.toggle-section{padding:3rem 0 0}
+.toggle-inner{max-width:900px;margin:0 auto;padding:0 2rem;text-align:center}
+.toggle-kicker{font-size:9px;font-weight:700;letter-spacing:0.28em;text-transform:uppercase;color:var(--deep);margin-bottom:16px}
+.toggle-wrap{display:inline-flex;background:#fff;border:2px solid var(--lav);border-radius:60px;padding:5px;gap:0;box-shadow:0 4px 24px rgba(60,36,100,0.1)}
+.toggle-btn{padding:12px 48px;border-radius:54px;font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:0.04em;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all 0.25s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;gap:8px}
+.toggle-btn.active{background:var(--v);color:#fff;box-shadow:0 4px 16px rgba(60,36,100,0.35)}
+.toggle-emoji{font-size:18px}
+
+/* ─── PROMPTS AREA ─── */
+.prompts-area{padding:2rem 0 5rem}
+.prompts-inner{max-width:900px;margin:0 auto;padding:0 2rem}
+.gender-block{display:none}
+.gender-block.active{display:block}
+
+/* ─── SET HEADER ─── */
+.set-header{display:flex;align-items:baseline;gap:16px;padding:3rem 0 1.5rem;border-bottom:1px solid var(--border);margin-bottom:1.75rem}
+.set-title{font-family:var(--display);font-size:22px;font-weight:800;color:var(--v);letter-spacing:-0.5px}
+.set-sub{font-size:11px;color:var(--muted)}
+.set-count{margin-right:auto;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--lav);background:var(--lav2);padding:4px 12px;border-radius:20px}
+
+/* ─── PROMPT CARD ─── */
+.prompt-card{border-radius:18px;overflow:hidden;margin-bottom:20px;border:1px solid var(--border);background:#fff;transition:box-shadow 0.2s,transform 0.2s}
+.prompt-card:hover{box-shadow:0 8px 40px rgba(60,36,100,0.12);transform:translateY(-2px)}
+.card-header{display:flex;align-items:center;gap:0;border-bottom:1px solid var(--border)}
+.card-num-block{background:var(--v);padding:20px 22px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:72px}
+.card-num-big{font-family:var(--display);font-size:34px;font-weight:800;color:var(--gold);line-height:1}
+.card-num-label{font-size:7.5px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:rgba(200,180,232,0.6);margin-top:2px}
+.card-meta{flex:1;padding:14px 18px}
+.card-scene-tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--deep);background:var(--lav2);padding:4px 10px;border-radius:20px;margin-bottom:6px}
+.card-scene-label{font-size:13px;font-weight:600;color:var(--v)}
+.card-body{padding:18px 20px}
+.card-section-label{font-size:8.5px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.card-section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.prompt-box{background:#FDFBF6;border:1px solid rgba(200,180,232,0.25);border-top:2px solid var(--gold);border-radius:12px;padding:16px 18px;position:relative;margin-bottom:14px}
+.prompt-text{font-family:'Courier New',monospace;font-size:11px;line-height:1.8;color:#2A2520;white-space:pre-wrap;word-break:break-word;direction:ltr;text-align:left}
+.copy-btn{position:absolute;top:12px;left:12px;background:var(--v);color:var(--gold);font-family:var(--sans);font-size:9px;font-weight:700;letter-spacing:0.12em;padding:5px 14px;border-radius:20px;border:none;cursor:pointer;transition:all 0.18s;text-transform:uppercase}
+.copy-btn:hover{background:var(--v2);color:#fff}
+.copy-btn.ok{background:#2D7A35;color:#fff}
+.neg-box{background:#F7F5FF;border:1px solid rgba(155,114,204,0.2);border-radius:12px;padding:12px 16px}
+.neg-label{font-size:8px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--deep);margin-bottom:8px}
+.neg-text{font-family:'Courier New',monospace;font-size:10px;line-height:1.7;color:#7a6a8a;direction:ltr;text-align:left}
+
+/* ─── DIVIDER ─── */
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--lav),transparent);margin:0}
+
+/* ─── FOOTER ─── */
+.footer{background:var(--v);padding:4rem 2rem 3rem;text-align:center}
+.footer-logo{font-family:var(--display);font-size:44px;font-weight:800;color:#fff;letter-spacing:-2px;margin-bottom:10px}
+.footer-logo span{color:var(--gold)}
+.footer-sub{font-size:11px;color:rgba(200,180,232,0.5);letter-spacing:0.06em}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:640px){
+  .topbar-sub{display:none}
+  .how-grid{grid-template-columns:1fr}
+  .nano-steps{grid-template-columns:1fr}
+  .toggle-btn{padding:10px 28px;font-size:13px}
+  .step-num{font-size:70px;min-width:70px}
+}
+</style>
+</head>
+<body>
+
+<!-- ─── TOP BAR ─── -->
+<nav class="topbar">
+  <div class="topbar-logo">
+    <svg viewBox="0 0 46 46" fill="none"><circle cx="23" cy="23" r="22" fill="#C8B4E8"/><polygon points="17,14 17,32 33,23" fill="#3C2464"/><circle cx="32" cy="12" r="5.5" fill="#F5D97A"/></svg>
+    <span class="topbar-name">Nofar<span>AI</span></span>
+  </div>
+  <span class="topbar-sub">מדריך פרומפטים · Identity Lock Series</span>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-kicker">מדריך פרומפטים מקצועי</div>
+    <h1 class="hero-h1">תמונות AI<br><em>שנראות כמוך</em></h1>
+    <p class="hero-desc">מדריך מלא לייצור תמונות AI ריאליסטיות עם שמירה על זהות מדויקת. כל פרומפט מוכן להעתקה — פשוט מצרפים תמונות רפרנס ומייצרים.</p>
+    <div class="hero-chips">
+      
+      
+      <div class="chip"><div class="chip-dot"></div>Identity Lock Series</div>
+      <div class="chip"><div class="chip-dot"></div>Copy-Ready</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── SECTION 1: HOW TO USE ─── -->
+<section class="section">
+  <div class="section-inner">
+    <div class="step-row">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-label">לפני שמתחילים</div>
+        <h2 class="step-h2">איך <em>מייצרים</em><br>את התמונה?</h2>
+        <p class="step-body">
+          מצרפים <strong>שתי תמונות רפרנס</strong> יחד עם הפרומפט ומייצרים — עם <strong>Nano Banana</strong> או ישירות עם <strong>Claude</strong>.
+        </p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:1.5rem">
+          <div class="callout callout--lav">
+            <div class="callout-label">📷 תמונה 1</div>
+            <div class="callout-text">פנים קרובות — close-up של הפנים. סלפי רגיל עובד מצוין.</div>
+          </div>
+          <div class="callout callout--gold">
+            <div class="callout-label">📷 תמונה 2</div>
+            <div class="callout-text">גוף שלם — אפשר משתי זוויות.</div>
+          </div>
+        </div>
+        <div class="callout callout--violet" style="margin-top:12px">
+          <div class="callout-label">הטקסט שמשלחים</div>
+          <div class="callout-text">"צור לי תמונה לפי הפרומפט והרפרנסים הבאים" + <strong>📷 תמונה 1 + 📷 תמונה 2</strong> + הפרומפט</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── SECTION 2: HOW TO USE ─── -->
+<section class="section section--dark">
+  <div class="section-inner">
+    <div class="step-row">
+      <div class="step-num step-num--dark">2</div>
+      <div class="step-content">
+        <div class="step-label step-label--dark">הוראות שימוש</div>
+        <h2 class="step-h2 step-h2--dark">איך <em>משתמשים</em><br>בפרומפטים?</h2>
+        <p class="step-body step-body--dark">
+          כל פרומפט נועד לשמור על <strong>זהות מלאה ומדויקת</strong> של המצולם/ת. החיתוך הוא 9:16 (vertical) — מושלם לרילס, סטורי ופוסטים.
+        </p>
+        <div class="callout callout--violet">
+          <div class="callout-label">הטקסט שמשלחים עם הפרומפט</div>
+          <div class="callout-text">"צור לי תמונה לפי הפרומפט והרפרנסים הבאים" + <strong>📷 תמונה 1 (פנים) + 📷 תמונה 2 (גוף)</strong> + הפרומפט</div>
+        </div>
+        <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="callout callout--lav">
+            <div class="callout-label">✅ תמונת רפרנס טובה</div>
+            <div class="callout-text">פנים ברורות, תאורה סבירה, הפנים במרכז. סלפי רגיל עובד מצוין.</div>
+          </div>
+          <div class="callout callout--gold">
+            <div class="callout-label">⚠️ שימי לב</div>
+            <div class="callout-text">לא לצרף תמונה של מישהי אחרת כרפרנס פנים — הפנים שלה ישתלטו על התמונה.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── GENDER TOGGLE ─── -->
+<div class="toggle-section">
+  <div class="toggle-inner">
+    <div class="toggle-kicker">בחרי את הסט שלך</div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn active" onclick="switchGender('male',this)"><span class="toggle-emoji">👨</span> גברים</button>
+      <button class="toggle-btn" onclick="switchGender('female',this)"><span class="toggle-emoji">👩</span> נשים</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── PROMPTS ─── -->
+<div class="prompts-area">
+  <div class="prompts-inner">
+
+    <!-- ══ MEN ══ -->
+    <div class="gender-block active" id="block-male">
+
+      <div class="set-header">
+        <div class="set-title">סט א׳ — Studio & Editorial</div>
+        <div class="set-sub">סטודיו · עסקי · אופנה</div>
+        <div class="set-count">10 פרומפטים</div>
+      </div>
+      <div id="m-a"></div>
+
+      <div class="set-header">
+        <div class="set-title">סט ב׳ — Quiet Luxury</div>
+        <div class="set-sub">לוקס שקט · רחוב · עיר</div>
+        <div class="set-count">4 פרומפטים</div>
+      </div>
+      <div id="m-b"></div>
+
+      <div class="set-header">
+        <div class="set-title">סט ג׳ — Clean & Natural</div>
+        <div class="set-sub">טבע · חוף · אינטריאור · ללא קעקועים</div>
+        <div class="set-count">6 פרומפטים</div>
+      </div>
+      <div id="m-c"></div>
+
+    </div>
+
+    <!-- ══ WOMEN ══ -->
+    <div class="gender-block" id="block-female">
+
+      <div class="set-header">
+        <div class="set-title">Identity Lock Series — Women</div>
+        <div class="set-sub">סטודיו · אופנה · לוקס שקט · חיצוני</div>
+        <div class="set-count">8 פרומפטים</div>
+      </div>
+      <div id="w-a"></div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── FOOTER ─── -->
+<footer class="footer">
+  <div class="footer-logo">Nofar<span>AI</span>
+    <svg width="34" height="34" viewBox="0 0 46 46" style="display:inline-block;vertical-align:-8px;margin-right:6px">
+      <circle cx="23" cy="23" r="22" fill="#C8B4E8"/>
+      <polygon points="17,14 17,32 33,23" fill="#3C2464"/>
+      <circle cx="32" cy="12" r="5.5" fill="#F5D97A"/>
+    </svg>
+  </div>
+  <div class="footer-sub">AI Portrait Prompts · Identity Lock Series<br>מייצרים עם Nano Banana או Claude</div>
+</footer>
+
+<script>
+/* ────────────────────────── DATA ────────────────────────── */
+const menA=[
+{s:"Studio B&W · Turtleneck",p:`Create a realistic 4K vertical portrait using the provided male reference as the identity source. Preserve the reference man's full identity with high accuracy: same face structure, eye color, gaze, nose, lips, jawline, cheekbones, skin tone, hair color, hairstyle direction, body build, age, posture proportions and all subtle natural details, changing only the clothing and scene styling. Editorial black-and-white studio portrait, medium upper-body framing, man standing against a smooth dark gray seamless studio backdrop, wearing a fitted black turtleneck knit sweater with visible fine fabric texture, arms crossed naturally across the chest, shoulders relaxed but confident, head slightly tilted downward and turned a little toward camera, direct intense gaze, calm serious expression. Soft directional studio key light from upper front-left creating sculpted shadows on one side of the face, gentle falloff across the sweater, high contrast monochrome tones, clean fashion editorial look, realistic skin texture, sharp focus on face, subtle film grain, no color, no props, no logos. Camera: professional full-frame portrait camera, 85mm lens, f/2.0, shallow depth of field, crisp 4K realism, vertical composition, centered subject, --ar 9:16 --style raw`,n:`different person, changed face, changed hair, changed eye color, younger or older, altered body build, unrealistic skin, plastic skin, CGI, illustration, cartoon, over-smoothed face, glamour retouching, extra fingers, distorted hands, bad anatomy, color image, text, watermark, logo`},
+{s:"Studio B&W · Hands Frame",p:`Create a realistic 4K vertical portrait using the provided male reference as the identity source. Preserve the reference man's full identity with high accuracy: same facial features, eye color, hair, skin tone, body build, age, natural asymmetry and recognizable expression, changing only clothing and pose styling. High-contrast black-and-white close-up fashion portrait, intimate studio setup with a bright white background, man wearing a simple fitted black crew-neck T-shirt. Pose: face centered behind both hands reaching toward the camera lens, palms and fingers very close to camera creating strong foreground blur, several silver rings on fingers, hands framing the face without fully hiding the eyes, direct calm gaze through the gap between fingers, neutral confident expression. Extreme perspective depth: hands large and blurred in foreground, face sharp in mid-ground, shallow depth of field, tactile skin detail on face, realistic knuckle and ring reflections. Lighting: bright soft frontal studio light with subtle side contrast, clean monochrome, deep blacks in shirt, bright whites in background, editorial male model energy. Camera: full-frame camera, 35mm lens close perspective, f/1.8, strong depth separation, vertical 9:16, ultra-realistic, no stylization, --ar 9:16 --style raw`,n:`different identity, face hidden too much, changed eyes, changed hair, changed body, fake hands, extra fingers, missing fingers, distorted rings, CGI, cartoon, painterly, over-retouched skin, color tones, messy background, text, watermark, logo`},
+{s:"Color Studio · Burgundy Wall",p:`Create a realistic 4K vertical portrait using the provided male reference as the identity source. Preserve the reference man's complete identity accurately: same face, eye color, hair color and texture, hairstyle direction, age, body build, skin tone, jawline, lips, nose and subtle facial details, changing only wardrobe and photographic styling. Cinematic color studio portrait, medium upper-body shot, man standing front-facing against a deep matte burgundy red seamless background, wearing a sleek black fitted turtleneck sweater. Arms crossed cleanly across chest, one wrist visible with a classic elegant wristwatch, shoulders squared, posture composed and powerful, direct eye contact, serious calm expression, minimal movement. Lighting: refined studio key light from front-left with soft controlled shadows, subtle warm highlight on skin, dark clothing absorbed into background but still showing fabric texture, luxury editorial contrast, rich red backdrop with smooth gradient falloff, clean modern masculine fashion look. Camera: professional portrait camera, 85mm lens, f/2.2, sharp face, gentle background softness, realistic skin texture, 4K detail, vertical 9:16 composition, --ar 9:16 --style raw`,n:`different person, altered facial structure, wrong eye color, changed hairstyle, changed age, changed body build, smiling broadly, casual background, low quality, CGI, illustration, waxy skin, over-beautified face, distorted hands, bad watch, logos, text, watermark`},
+{s:"Studio B&W · Window Loft",p:`Create a realistic 4K vertical portrait using the provided male reference as the identity source. Preserve the reference man's full identity exactly: same facial features, eye color, hair, body build, skin tone, age, natural proportions and recognizable details, changing only the clothing and scene styling. Black-and-white editorial portrait inside a bright minimalist studio loft, medium full-body framing from thighs upward, man standing near a large industrial grid window with soft daylight behind him. Outfit: dark fitted long-sleeve knit sweater and tailored dark trousers, simple clean masculine styling. Pose: body turned slightly sideways, one arm crossed around torso, opposite hand raised near chin as if holding a subtle thoughtful fist, composed serious gaze toward camera, elegant restrained confidence. Lighting: strong natural backlight through large window panes, soft gray daylight wrapping around the face, gentle shadows, high-key window background with darker subject silhouette, classic monochrome fashion editorial mood, visible window grid lines, clean interior, no clutter. Camera: full-frame camera, 70mm lens, f/2.8, realistic texture, subtle film grain, 4K sharpness, vertical 9:16, --ar 9:16 --style raw`,n:`different identity, altered face, changed hair, changed age, changed body shape, color image, overexposed face, underexposed face, messy room, fake window, CGI, illustration, plastic skin, distorted arms, extra fingers, text, watermark, logo`},
+{s:"Corporate · LinkedIn Headshot",p:`Create a realistic 4K vertical professional headshot using the provided male reference as the identity source. Preserve the reference man's complete identity accurately: same face, eyes, eye color, hair, skin tone, age, body build, natural smile style, facial proportions and subtle details, changing only wardrobe and background. Corporate studio headshot, chest-up framing, man standing against a smooth dark charcoal gray background, wearing a fitted navy blue button-up shirt with clean collar, sleeves not visible, simple modern business-casual look. Pose: body facing forward, shoulders relaxed, head straight, friendly confident smile, direct eye contact, approachable professional energy. Lighting: soft even studio lighting, gentle front key light, mild catchlights in the eyes, clean shadow under jaw, natural realistic skin, no dramatic contrast, polished LinkedIn-style portrait but still authentic. Color palette: charcoal gray background, deep navy shirt, natural warm skin tones. Camera: professional full-frame camera, 70mm lens, f/2.8, sharp face, softly blurred background, ultra-realistic 4K, vertical 9:16 crop with head and upper torso centered, --ar 9:16 --style raw`,n:`different person, changed face, wrong eye color, wrong hair, altered age, altered body, overly perfect teeth, plastic skin, fake smile, glamour fashion lighting, CGI, illustration, distorted shoulders, bad collar, logos, text, watermark`},
+{s:"Outdoor Business · Patio",p:`Create a realistic 4K vertical business portrait using the provided male reference as the identity source. Preserve the reference man's full identity with high accuracy: same facial structure, eye color, hair, skin tone, body build, age, natural expression and all recognizable details, changing only clothing and setting. Outdoor professional portrait, medium shot from waist up, man seated or leaning casually at an outdoor modern business patio table, wearing a dark navy suit jacket over a crisp white dress shirt with open collar, no tie. Pose: one forearm resting naturally on the table or chair arm, shoulders angled slightly toward camera, relaxed confident half-smile, direct eye contact, approachable entrepreneur energy. Background: softly blurred greenery, modern exterior architecture, hints of patio furniture, natural daylight. Lighting: soft outdoor shade with gentle warm daylight on face, balanced natural contrast, realistic skin texture, clean business editorial color grade, navy suit and white shirt contrast against green/neutral background. Camera: full-frame camera, 85mm lens, f/2.0, shallow depth of field, natural bokeh, 4K realistic detail, vertical 9:16 composition, --ar 9:16 --style raw`,n:`different identity, altered face, wrong eyes, changed hair, changed age, changed body, overly formal tie, studio background, harsh sunlight, fake smile, CGI, illustration, waxy skin, distorted hands, extra fingers, text, watermark, logo`},
+{s:"Studio B&W · Chair",p:`Create a realistic 4K vertical fashion portrait using the provided male reference as the identity source. Preserve the reference man's complete identity accurately: same face, eyes, hair, skin tone, body build, age, natural proportions and subtle unique features, changing only wardrobe and pose styling. Black-and-white minimalist studio full-body portrait, wide vertical composition with large negative space above the subject, man sitting casually on a simple metal folding chair against a plain light gray seamless backdrop. Outfit: plain black oversized T-shirt, light washed straight-leg jeans, black lace-up leather boots, casual understated styling. Pose: seated low and relaxed, one leg bent outward, one hand resting loosely on thigh, other arm draped over chair back, torso slightly turned, head looking off to the side away from camera, introspective calm expression. Lighting: soft overhead/front studio light, natural shadow cast on the floor, clean monochrome tones, visible fabric and denim texture, subtle film grain, editorial indie fashion vibe. Camera: full-frame camera, 50mm lens, f/3.5, full-body sharpness, realistic 4K, vertical 9:16, --ar 9:16 --style raw`,n:`different person, altered facial features, wrong hair, wrong age, changed body, color image, luxury outfit, suit, messy background, CGI, illustration, plastic skin, distorted legs, bad chair geometry, extra limbs, text, watermark, logo`},
+{s:"Studio B&W · Watch",p:`Create a realistic 4K vertical fashion portrait using the provided male reference as the identity source. Preserve the reference man's full identity with high accuracy: same facial structure, eye color, hair color and direction, skin tone, age, body build, natural expression and recognizable details, changing only clothing and styling. Black-and-white studio portrait, three-quarter medium shot from mid-thigh upward, man standing against a plain light gray wall backdrop. Outfit: loose dark short-sleeve button-up shirt with soft drape, black high-waisted tailored trousers, elegant wristwatch on one wrist, minimal clean accessories. Pose: arms crossed low and asymmetrically across torso, one hand resting near opposite elbow, shoulders relaxed, head slightly tilted back, direct calm gaze toward camera, reserved cool expression. Lighting: soft directional studio light from upper left, gentle shadow on the wall, smooth monochrome contrast, dark clothing with visible folds and fabric texture, refined editorial look. Camera: professional full-frame portrait camera, 70mm lens, f/2.8, crisp face, natural skin texture, slight film grain, vertical 9:16, --ar 9:16 --style raw`,n:`different identity, changed face, wrong eyes, changed hairstyle, altered body build, color image, overly dramatic pose, smile too big, CGI, illustration, waxy skin, distorted hands, bad watch, logos, text, watermark`},
+{s:"Color Studio · Red · Black Suit",p:`Create a realistic 4K vertical cinematic fashion portrait using the provided male reference as the identity source. Preserve the reference man's complete identity accurately: same face, eye color, hair, skin tone, age, body build, natural proportions and all subtle recognizable details, changing only wardrobe and scene styling. Color studio editorial portrait against a deep matte red seamless backdrop, full-body vertical composition. Man seated on a tall reddish wooden stool, wearing a structured black suit with slightly oversized tailored jacket, black turtleneck or black fitted top underneath, black trousers and black polished shoes. Pose: one leg bent and placed higher on the stool support, one hand resting casually on the knee, other hand placed at waist or inside jacket pocket, torso leaning slightly forward, direct composed gaze, calm luxury editorial expression. Lighting: warm controlled studio key light from front-left, soft shadow on red floor/backdrop, rich red and black color palette, cinematic contrast, realistic fabric texture, no logos. Camera: professional full-frame camera, 50mm lens, f/2.8, sharp face, balanced depth of field, 4K realism, vertical 9:16 crop, --ar 9:16 --style raw`,n:`different person, altered facial structure, wrong eye color, wrong hair, changed age, changed body build, cheap suit, messy stool, distorted legs, extra limbs, CGI, illustration, plastic skin, over-glam retouching, text, watermark, logo`},
+{s:"Corporate · Navy Blazer",p:`Create a realistic 4K vertical professional portrait using the provided male reference as the identity source. Preserve the reference man's full identity exactly: same face, eyes, eye color, hair, skin tone, age, body build, natural smile, jawline, nose, lips and subtle facial details, changing only wardrobe and background styling. Modern corporate portrait, chest-up framing, man standing in front of a softly blurred neutral indoor background with muted blue-gray and beige tones, wearing a dark navy blazer over a patterned gray button-up shirt with open collar, no tie. Pose: shoulders angled slightly toward camera, head facing forward, relaxed friendly smile, direct eye contact, confident approachable business energy. Lighting: soft natural indoor light with gentle front fill, subtle catchlights in eyes, smooth realistic shadows, shallow depth of field, polished but authentic corporate photography look. Color palette: navy, gray, muted beige, natural skin tones, clean professional atmosphere. Camera: full-frame camera, 85mm lens, f/2.0, sharp facial detail, realistic skin texture, soft bokeh background, ultra-realistic 4K, vertical 9:16, --ar 9:16 --style raw`,n:`different identity, changed facial features, wrong eye color, wrong hair, changed age, changed body shape, overly fake smile, cartoon, CGI, illustration, over-smoothed skin, harsh flash, busy background, logos, text, watermark`}
+];
+
+const menB=[
+{s:"Quiet Luxury · Cognac Chair",p:`Create a realistic 4K vertical cinematic fashion portrait using the provided male reference as the locked identity source. Preserve the reference man's complete identity with very high accuracy: same face structure, eye color, gaze, nose, lips, jawline, cheekbones, skin tone, hair color, hairstyle direction, body build, age, height impression, natural proportions and all subtle recognizable details. Change only the wardrobe, pose, chair and photographic styling. Scene: minimalist warm studio interior with a pale sage-gray seamless wall and light neutral floor. Full-body seated fashion portrait. The man sits centered in a tan cognac leather and chrome tubular lounge chair, relaxed but powerful, one leg crossed over the other with the front leg extending toward camera, both hands resting naturally near the lap and chair arms. Outfit: cream textured oversized wool or boucle blazer, soft beige open-collar shirt underneath, tailored warm taupe high-waisted trousers, dark socks, polished brown leather dress shoes. Expression: serious, composed, quiet luxury confidence, direct eye contact. Lighting: warm late-afternoon sunlight from camera-left, soft golden highlights on face and cream jacket, long natural shadows on floor, subtle cinematic contrast, clean editorial warmth. Color palette: cream, beige, cognac leather, taupe, warm gray, brown shoes. Camera: professional full-frame camera, 50mm lens, f/2.8, realistic skin texture, crisp face, natural fabric texture, soft background falloff, luxury menswear editorial, vertical composition, --ar 9:16 --style raw`,n:`different person, changed identity, altered face, wrong eye color, wrong hair, changed age, changed body build, unrealistic proportions, generic model face, over-smoothed skin, plastic skin, CGI, illustration, cartoon, distorted chair, broken chrome frame, extra fingers, bad hands, bad feet, text, watermark, logo`},
+{s:"Quiet Luxury · Beige Suit · Window Shadows",p:`Create a realistic 4K vertical cinematic menswear portrait using the provided male reference as the locked identity source. Preserve the reference man's full identity exactly: same facial features, eye color, hair color, hairstyle, skin tone, age, body build, natural proportions, facial asymmetry and all recognizable details. Change only outfit and scene styling. Scene: clean minimalist studio wall in warm beige-gray tones with strong rectangular sunlight and window-shadow geometry falling across the wall. Medium three-quarter portrait from upper thighs to head, front-facing. The man stands upright with relaxed shoulders, both hands inside trouser pockets, chest open, direct calm gaze, neutral serious expression. Outfit: elegant beige/taupe tailored suit with subtle woven texture, structured blazer, matching high-waisted pleated trousers, crisp white open-collar dress shirt with top buttons open, small minimal necklace, white pocket square. Styling: quiet luxury European editorial. Lighting: warm natural hard sunlight from upper right creating dramatic rectangular window shadows, balanced soft fill so face remains detailed. Color palette: beige, taupe, white, warm skin tones, soft olive-gray wall. Camera: professional full-frame camera, 70mm lens, f/2.2, shallow depth of field, sharp facial detail, realistic fabric weave, cinematic editorial color grade, vertical 9:16, --ar 9:16 --style raw`,n:`different identity, changed face, wrong eye color, changed hair, changed age, altered body, wrong suit, busy background, fake window shadows, plastic skin, CGI, illustration, cartoon, extra fingers, distorted hands, text, watermark, logo`},
+{s:"Dark Luxury · All Black Interior",p:`Create a realistic 4K vertical cinematic fashion portrait using the provided male reference as the locked identity source. Preserve the reference man's complete identity with high accuracy: same face, eye color, hair, skin tone, age, body build, facial proportions, natural asymmetry and all subtle recognizable details. Change only wardrobe, pose and environment styling. Scene: dark moody luxury interior, black charcoal walls, black curtains, soft window light entering from the left, circular mirror on the right wall, minimal dark furniture, elegant shadowy room. Medium portrait from mid-thigh upward. The man stands slightly angled toward camera, one hand in trouser pocket, the other hand lightly adjusting the open collar, shoulders relaxed, head slightly tilted back, direct calm gaze, cool mysterious expression. Outfit: all-black menswear, loose black button-up shirt with open collar, sleeves rolled to forearms, black high-waisted tailored trousers, black belt with subtle metal buckle. Lighting: soft cool daylight from left window, low-key contrast, gentle highlights on face and collarbones, deep blacks, cinematic noir editorial atmosphere. Color palette: black, charcoal, cool gray, muted skin tones. Camera: professional full-frame camera, 85mm lens, f/2.0, shallow depth of field, sharp face, 4K, vertical 9:16, --ar 9:16 --style raw`,n:`different person, changed identity, wrong eye color, wrong hair, changed age, changed body build, overdone tattoos, glossy fake skin, CGI, illustration, cartoon, too bright room, colorful background, distorted hands, extra fingers, text, watermark, logo`},
+{s:"Street Style · European City",p:`Create a realistic 4K vertical cinematic street-style menswear portrait using the provided male reference as the locked identity source. Preserve the reference man's full identity accurately: same face structure, eye color, hair, skin tone, age, body build, height impression, natural proportions and recognizable details. Change only clothing, accessories and location styling. Scene: elegant old European city street in daylight, stone building facades, tall wooden doors, soft urban background blur, large concrete planter with small white flowers on the left foreground, sunlit pavement, premium lifestyle editorial atmosphere. Full-body walking portrait. The man walks toward the camera at a natural pace, centered in frame, hands in trouser pockets, shoulders relaxed, head slightly tilted, confident effortless expression. Outfit: textured rust-brown linen suit with relaxed blazer and matching tapered trousers, dark navy or black crew-neck T-shirt underneath, white pocket square, classic wristwatch, white clean leather sneakers, dark sunglasses. Lighting: bright natural midday sun with crisp but tasteful shadows, warm highlights on brown suit, realistic street contrast, shallow background separation. Color palette: rust brown, navy/black, white sneakers, gray stone, warm sunlight. Camera: professional full-frame camera, 85mm lens, f/2.8, compressed street perspective, realistic motion-free sharpness, luxury street-style editorial, vertical 9:16, --ar 9:16 --style raw`,n:`different identity, changed face, wrong eye color, changed hair, altered body build, stiff mannequin pose, cheap suit, distorted legs, bad shoes, extra fingers, broken sunglasses, overexposed face, CGI, illustration, cartoon, fake street, text, watermark, logo`}
+];
+
+const menC=[
+{s:"Clean & Natural · Golden Field",p:`Create a realistic 4K vertical cinematic portrait using the provided male reference as the locked identity source. Preserve the reference man's complete identity with very high accuracy: same face structure, eye color, gaze, nose, lips, jawline, cheekbones, skin tone, hair color, hairstyle direction, body build, age, height impression, natural proportions and all subtle recognizable details. Change only the wardrobe, pose, environment and photographic styling. Scene: open field of tall dry golden grass under a soft cloudy sky, natural outdoor editorial atmosphere. Medium full-body portrait from upper thighs to head, centered composition. The man stands facing the camera with both hands inside trouser pockets, shoulders squared, calm serious expression, direct intense gaze. Outfit: all-black elegant menswear, fitted black turtleneck sweater, structured black long coat or tailored overcoat, black tailored trousers, clean minimal luxury styling. No tattoos anywhere on the body. Lighting: soft natural daylight with gentle warm backlight, muted sky diffusion, subtle cinematic contrast, golden grass softly blurred behind him. Color palette: black clothing, wheat-gold grass, pale blue-gray sky. Camera: professional full-frame camera, 85mm lens, f/2.4, shallow depth of field, sharp face, vertical 9:16, --ar 9:16 --style raw`,n:`tattoos, neck tattoo, face tattoo, hand tattoo, arm tattoo, different person, changed identity, altered face, wrong eye color, wrong hair, changed age, changed body build, plastic skin, CGI, illustration, cartoon, distorted hands, bad anatomy, text, watermark, logo`},
+{s:"Clean & Natural · Cafe Patio",p:`Create a realistic 4K vertical lifestyle portrait using the provided male reference as the locked identity source. Preserve the reference man's full identity exactly: same facial features, eye color, hair color, hairstyle, skin tone, age, body build, natural proportions, facial asymmetry and all recognizable details. Change only outfit, pose and location styling. Scene: modern outdoor patio or cafe entrance with warm wood details, large potted tropical plants, soft architectural background blur, natural daylight. Medium seated portrait from thighs to head. The man sits casually on a wooden bench, leaning slightly forward toward camera, one forearm resting on thigh, open approachable expression with a subtle confident half-smile. Outfit: fitted plain black crew-neck T-shirt, light beige or cream casual trousers, modern black wristwatch, clean minimal styling. No tattoos anywhere. Lighting: warm late-afternoon sunlight from the side, soft highlights on face and arms, natural shadows, realistic skin texture, relaxed premium lifestyle mood. Camera: professional full-frame camera, 50mm lens, f/2.0, shallow depth of field, crisp face, natural bokeh, ultra-realistic 4K, vertical 9:16, --ar 9:16 --style raw`,n:`tattoos, visible tattoo, neck tattoo, hand tattoo, arm tattoo, different identity, changed face, wrong eye color, wrong hair, changed age, altered body, fake smile, plastic skin, CGI, illustration, cartoon, distorted hands, extra fingers, messy background, text, watermark, logo`},
+{s:"Clean & Natural · Beach Sunset",p:`Create a realistic 4K vertical golden-hour beach portrait using the provided male reference as the locked identity source. Preserve the reference man's complete identity accurately: same face, eye color, hair, skin tone, age, body build, facial proportions, natural asymmetry and all subtle recognizable details. Change only outfit, accessories and environment styling. Scene: beach at sunset with ocean horizon behind him, glowing orange sun low near the water, soft clouds in the sky, warm cinematic golden light. Tight chest-up portrait, subject slightly angled three-quarters, head turned toward camera, calm serious expression, confident relaxed gaze. Outfit: lightweight beige linen button-up shirt, open collar, natural fabric texture, small simple chain necklace. Clean skin only: no tattoos anywhere. Lighting: strong warm sunset side light across the face, orange glow on skin and shirt, soft rim light from horizon, gentle shadows. Color palette: amber sunset, beige linen, ocean blue-gray, warm skin tones. Camera: professional full-frame camera, 85mm lens, f/2.0, shallow depth of field, sharp eyes, realistic skin texture, vertical 9:16, --ar 9:16 --style raw`,n:`tattoos, neck tattoo, face tattoo, chest tattoo, hand tattoo, arm tattoo, different person, changed identity, altered face, wrong eye color, wrong hair, changed age, CGI, illustration, cartoon, over-smoothed skin, fake sunset, text, watermark, logo`},
+{s:"Clean & Natural · White Studio",p:`Create a realistic 4K vertical minimalist studio fashion portrait using the provided male reference as the locked identity source. Preserve the reference man's full identity with high accuracy: same face structure, eye color, hair color and direction, skin tone, age, body build, natural proportions and recognizable details. Change only clothing, pose, stool and photographic styling. Scene: clean off-white studio wall and floor, minimal warm editorial set, strong sunlight creating a distinct soft-edged shadow of the subject on the wall. Full-body seated portrait. The man sits on a tall simple metal stool, one leg bent and lifted on the stool support, the other leg relaxed downward, torso leaning slightly forward, one hand resting casually on thigh, relaxed friendly expression with a small natural smile. Outfit: dark brown textured overshirt or cropped jacket worn open over a plain black shirt, cream cropped tailored trousers, black loafers. No tattoos anywhere on visible skin. Lighting: warm hard sunlight from camera-left creating elegant wall shadow. Color palette: off-white, cream, dark brown, black, warm sunlight. Camera: professional full-frame camera, 50mm lens, f/3.2, full-body clarity, vertical 9:16, --ar 9:16 --style raw`,n:`tattoos, visible tattoo, ankle tattoo, hand tattoo, neck tattoo, different identity, changed face, wrong eyes, wrong hair, changed age, altered body build, distorted stool, bad hands, extra fingers, CGI, illustration, cartoon, text, watermark, logo`},
+{s:"Clean & Natural · Orange Studio",p:`Create a realistic 4K vertical warm studio menswear portrait using the provided male reference as the locked identity source. Preserve the reference man's complete identity accurately: same facial features, eye color, hair, skin tone, age, body build, natural smile style, facial proportions and subtle recognizable details. Change only wardrobe, pose, stool and background styling. Scene: warm burnt-orange seamless studio backdrop, intimate editorial portrait, seated on a rustic wooden stool. Medium full-body seated framing. The man sits casually with legs open in a relaxed masculine pose, torso leaning forward slightly, one hand resting near chin, the other hand resting near lap, broad natural smile, warm charismatic expression. Outfit: olive green workwear-style jacket or overshirt, dark navy or black crew-neck shirt underneath, loose cream trousers, dark loafers. No tattoos. Lighting: soft warm studio key light from front-left, gentle shadows, rich earthy tones, realistic skin texture. Color palette: burnt orange, olive green, cream, dark navy, warm skin tones. Camera: professional full-frame camera, 70mm lens, f/2.5, sharp face, soft background, vertical 9:16, --ar 9:16 --style raw`,n:`tattoos, hand tattoo, neck tattoo, face tattoo, arm tattoo, different person, changed identity, wrong eye color, wrong hair, changed age, changed body build, fake smile, CGI, illustration, cartoon, text, watermark, logo`},
+{s:"Clean & Natural · Window Daylight",p:`Create a realistic 4K vertical clean portrait using the provided male reference as the locked identity source. Preserve the reference man's full identity exactly: same face, eye color, hair color, hairstyle direction, skin tone, age, body build, facial asymmetry, natural proportions and all recognizable details. Change only outfit and scene styling. Scene: bright minimalist interior near a large window, pale neutral wall with soft rectangular sunlight falling across the background, clean modern daylight portrait. Chest-up to mid-torso framing, subject slightly angled, head turned gently toward camera, relaxed subtle smile, calm approachable expression. Outfit: simple light gray crew-neck sweatshirt with soft cotton texture, casual clean styling, no visible logos. No tattoos anywhere. Lighting: soft natural window light from side, warm highlights on face, gentle shadows, realistic skin texture, clean airy color grade. Color palette: pale gray sweatshirt, cream wall, soft daylight, warm neutral skin tones. Camera: professional full-frame camera, 85mm lens, f/2.0, shallow depth of field, sharp eyes, ultra-realistic 4K, vertical 9:16, --ar 9:16 --style raw`,n:`tattoos, neck tattoo, face tattoo, hand tattoo, visible tattoo, different identity, altered face, wrong eyes, wrong hair, changed age, changed body build, logo on sweatshirt, messy background, harsh flash, CGI, illustration, cartoon, waxy skin, text, watermark, logo`}
+];
+
+const womenA=[
+{s:"Quiet Luxury · Cream Suit · Leather Chair",p:`Create a realistic 4K vertical cinematic fashion portrait using the provided female reference as the locked identity source. Preserve the reference woman's complete identity with very high accuracy: same face structure, eye color, gaze, nose, lips, jawline, cheekbones, skin tone, hair color, exact hairstyle, hair length, body build, age, height impression, natural proportions and all subtle recognizable details. BODY LOCK: preserve the exact natural body shape from the provided reference, including shoulders, waist, hips and natural bust volume; do not flatten the chest, do not exaggerate the bust, do not make her thinner or more model-like than the reference. Change only wardrobe, pose, chair and photographic styling. Scene: warm minimalist studio with beige wall, golden rectangular sunlight shadows on the wall, cognac leather armchair. Medium seated portrait from knees to head. The woman sits centered in the leather chair with legs crossed, both arms resting on the chair arms, upright elegant posture, direct calm gaze, confident quiet-luxury expression. Outfit: cream tailored women's suit, structured blazer with deep V cut but tasteful styling, matching wide-leg trousers, layered delicate gold necklaces, small gold earrings, polished minimal makeup. Lighting: warm late-afternoon sunlight from upper left, soft golden highlights on face, suit and leather chair, gentle cinematic shadows, realistic skin texture. Color palette: cream, caramel leather, warm beige, soft gold, natural skin tones. Camera: professional full-frame camera, 70mm lens, f/2.2, shallow depth of field, sharp eyes, luxury editorial realism, vertical 9:16, --ar 9:16 --style raw`,n:`different person, changed identity, altered face, wrong eye color, wrong hair, changed hairstyle, changed body shape, flattened chest, exaggerated bust, unrealistic body, overly thin model body, plastic skin, CGI, illustration, cartoon, distorted hands, extra fingers, bad chair, text, watermark, logo`},
+{s:"Quiet Luxury · Beige Suit · Window Shadows",p:`Create a realistic 4K vertical cinematic fashion portrait using the provided female reference as the locked identity source. Preserve the reference woman's full identity exactly: same facial features, eye color, hair color, hairstyle, skin tone, age, body build, natural proportions, facial asymmetry and all recognizable details. BODY LOCK: preserve the reference woman's natural body structure exactly, including bust, waist, hips, shoulders and posture; do not flatten the chest, do not enlarge or shrink body features, do not create a generic runway-model body. Change only outfit, pose and location styling. Scene: warm sunlit minimal interior with pale beige wall, strong geometric window shadows across the background, tropical plant leaves on the right edge. Low-angle medium fashion portrait from upper thighs to head. The woman stands leaning slightly back with hands inside trouser pockets, one hip gently angled, head tilted upward, relaxed confident expression, eyes half-open in sunlight. Outfit: oversized beige/taupe tailored blazer with subtle textured fabric, matching high-waisted trousers, soft beige blouse underneath, clean minimal jewelry. Lighting: golden hard sunlight from upper left, dramatic rectangular window shadows, warm skin highlights, soft cinematic contrast. Color palette: taupe, beige, cream, warm gold, muted green plant accents. Camera: professional full-frame camera, 50mm lens, f/2.0, slight low-angle editorial perspective, sharp face, realistic fabric texture, vertical 9:16, --ar 9:16 --style raw`,n:`different identity, changed face, wrong eyes, wrong hair, changed body build, flattened chest, exaggerated bust, unrealistic slim body, oversexualized pose, plastic skin, CGI, illustration, cartoon, distorted hands, bad suit fit, text, watermark, logo`},
+{s:"Luxury Lifestyle · Mountain Chalet",p:`Create a realistic 4K vertical luxury lifestyle portrait using the provided female reference as the locked identity source. Preserve the reference woman's complete identity accurately: same face, eye color, hair color, exact hairstyle and length, skin tone, age, body build, natural proportions and all subtle recognizable details. BODY LOCK: keep the exact natural body shape from the reference, including natural bust volume, waist, hips and shoulders; do not flatten the chest, do not exaggerate curves, do not make the body slimmer or different. Change only outfit, pose, interior and styling. Scene: bright luxury chalet or mountain retreat interior with large glass window showing snowy forest and distant mountains, built-in wooden shelves with folded white towels on the left, white boucle lounge chair, pale wood floor. Full seated lifestyle portrait. The woman reclines comfortably in the white textured chair, one knee raised, one leg relaxed forward, one hand holding an open book, other hand touching neck or hair, gaze lowered toward the book, serene elegant mood. Outfit: soft beige oversized blazer, matching beige wide-leg trousers, minimal gold hoop earrings, natural makeup. Lighting: crisp natural daylight from large window, soft sun patches on chair and clothing, cool blue snow view outside balanced with warm indoor beige tones. Camera: professional full-frame camera, 50mm lens, f/2.8, realistic interior depth, sharp subject, soft background, 4K editorial realism, vertical 9:16, --ar 9:16 --style raw`,n:`different person, changed identity, altered face, wrong hair, wrong eye color, changed body shape, flattened chest, exaggerated bust, overly thin body, fake snow view, bad book, distorted hands, extra fingers, CGI, illustration, cartoon, plastic skin, text, watermark, logo`},
+{s:"Studio Fashion · Chocolate Suit",p:`Create a realistic 4K vertical minimalist studio fashion portrait using the provided female reference as the locked identity source. Preserve the reference woman's full identity with high accuracy: same face structure, eye color, hair color, exact hairstyle, skin tone, age, body build, natural proportions and recognizable details. BODY LOCK: preserve her natural reference body shape, including realistic bust volume, waist, hips and shoulder width; do not flatten the chest, do not enlarge the chest, do not change her proportions. Change only wardrobe, pose, chair and set. Scene: clean white/soft gray studio with minimal wall and floor, white modern chair with chrome legs, bright sunlight creating graphic shadows on the floor. Medium full-body seated editorial portrait. The woman sits angled sideways on the chair, one leg extended diagonally toward foreground, the other bent, torso leaning slightly forward, hands relaxed near lap, direct composed gaze. Outfit: oversized chocolate-brown tailored suit, structured blazer, matching wide-leg trousers, deep neckline but tasteful editorial styling, gold hoop earrings, slick clean hair styling according to the reference. Lighting: hard natural sunlight from upper left, crisp chair shadows, warm highlights on brown suit, neutral studio contrast. Camera: professional full-frame camera, 50mm lens, f/2.5, sharp face, realistic fabric texture, vertical 9:16, --ar 9:16 --style raw`,n:`different identity, changed face, wrong eyes, wrong hair, altered body, flattened chest, exaggerated bust, oversexualized styling, distorted legs, bad chair, bad hands, extra fingers, CGI, illustration, cartoon, plastic skin, text, watermark, logo`},
+{s:"Studio Fashion · Orange · Acrylic Chair",p:`Create a realistic 4K vertical cinematic studio fashion portrait using the provided female reference as the locked identity source. Preserve the reference woman's complete identity accurately: same facial features, eye color, hair color, exact hairstyle and length, skin tone, age, body build, natural proportions and all subtle recognizable details. BODY LOCK: preserve the woman's natural reference body shape exactly, including natural bust volume and overall proportions; do not flatten the chest, do not exaggerate curves, do not make her thinner or taller than the reference. Change only outfit, pose, chair and lighting design. Scene: warm burnt-orange seamless studio backdrop and floor with dramatic golden spotlight gradient. Full-body seated fashion portrait on a transparent acrylic chair. The woman sits sideways with one leg crossed, one elbow resting on knee, chin resting lightly on hand, opposite arm extended along the chair back, direct confident gaze over small glasses. Outfit: oversized dark brown blazer, dark top or fitted layer underneath, short skirt or tailored mini styling if visible, knee-high beige socks, black loafers, small glasses, subtle earrings. Lighting: theatrical warm spotlight from lower right and hard key from front-left, dramatic shadow shape on orange wall, high-fashion contrast. Color palette: burnt orange, chocolate brown, beige socks, black shoes, warm skin tones. Camera: professional full-frame camera, 50mm lens, f/2.8, sharp subject, glossy acrylic reflections, cinematic editorial 4K, vertical 9:16, --ar 9:16 --style raw`,n:`different person, changed identity, wrong face, wrong eyes, wrong hair, changed body, flattened chest, exaggerated bust, overly revealing pose, distorted chair, bad legs, bad hands, extra fingers, CGI, illustration, cartoon, plastic skin, text, watermark, logo`},
+{s:"Studio B&W · White Suit · Window Shadows",p:`Create a realistic 4K vertical sunlit fashion portrait using the provided female reference as the locked identity source. Preserve the reference woman's full identity exactly: same face, eye color, hair color, exact hairstyle, skin tone, age, body build, natural proportions and recognizable details. BODY LOCK: preserve the exact natural body shape from the reference, including natural bust volume, shoulders, waist and hips; do not flatten the chest, do not exaggerate the bust, do not change body proportions. Change only clothing, pose, chair and styling. Scene: bright white minimalist studio with hard window-grid shadows crossing the wall and subject, wooden lounge chair with woven seat. Medium seated portrait from thighs to head. The woman sits relaxed in an oversized white suit, leaning back with eyes closed, one arm raised near forehead, other hand resting on lap, serene sun-soaked expression. Outfit: oversized white blazer with wide sleeves, matching white trousers, soft neutral underlayer, delicate hoop earrings and rings. Lighting: strong warm sunlight from upper left, crisp window shadow pattern over white fabric and face, clean high-key studio mood, realistic skin highlights. Color palette: white, ivory, soft beige, warm gold, pale gray shadows. Camera: professional full-frame camera, 50mm lens, f/2.8, soft background, sharp facial detail, realistic fabric texture, vertical 9:16, --ar 9:16 --style raw`,n:`different identity, altered face, wrong eyes, wrong hair, changed body shape, flattened chest, exaggerated bust, unrealistic model proportions, overexposed face, distorted raised hand, extra fingers, bad chair, CGI, illustration, cartoon, text, watermark, logo`},
+{s:"Pure White Studio · Barefoot",p:`Create a realistic 4K vertical minimalist studio fashion portrait using the provided female reference as the locked identity source. Preserve the reference woman's complete identity with very high accuracy: same face structure, eye color, hair color, exact hairstyle, skin tone, age, body build, natural proportions and subtle unique details. BODY LOCK: preserve the natural reference body exactly, including bust, waist, hips, shoulders and leg proportions; do not flatten the chest, do not exaggerate curves, do not create a generic thin fashion model. Change only outfit, stool, pose and set. Scene: pure white seamless studio with lots of negative space, clean high-key lighting, simple wooden stool. Full-body seated portrait, subject centered small-to-medium in frame. The woman sits on the stool with legs spread in a relaxed editorial stance, one bare foot on floor and one foot raised on stool support, both hands resting on the stool between her knees, shoulders slightly forward, soft direct gaze. Outfit: oversized white tailored blazer and matching white tailored trousers, minimal jewelry, bare feet, clean elegant styling. Lighting: soft diffused studio light, minimal shadows, airy luxury editorial mood. Camera: professional full-frame camera, 70mm lens, f/4.0, full-body clarity, clean composition, realistic fabric folds, vertical 9:16, --ar 9:16 --style raw`,n:`different person, changed face, wrong eyes, wrong hair, changed body build, flattened chest, exaggerated bust, overly sexual pose, distorted stool, distorted feet, bad hands, extra fingers, CGI, illustration, cartoon, plastic skin, text, watermark, logo`},
+{s:"Studio · White Pleated Suit · Diagonal Light",p:`Create a realistic 4K vertical cinematic fashion portrait using the provided female reference as the locked identity source. Preserve the reference woman's full identity accurately: same facial features, eye color, hair color, exact hairstyle, skin tone, age, body build, natural proportions and all recognizable details. BODY LOCK: keep the exact natural body shape from the provided reference, including natural bust volume, waist, hips and shoulders; do not flatten the chest, do not enlarge the bust, do not alter proportions. Change only outfit, pose and studio styling. Scene: minimalist studio with soft gray-white wall and strong diagonal sunlight patch behind the subject. Full-body seated portrait close to floor or low white cube. The woman sits with knees apart in a relaxed confident pose, elbows resting on knees, hands clasped low, head tilted back slightly, eyes closed or softly lowered, calm powerful expression. Outfit: white pleated or ribbed oversized suit, matching wide pleated trousers, structured blazer, white fitted top underneath, silver or clear high-heel sandals, statement rings and necklace. Lighting: hard sunlight from upper left creating crisp floor shadows, bright highlights on white fabric, soft shadow side for depth, premium editorial contrast. Camera: professional full-frame camera, 45mm lens, f/2.8, sharp subject, visible pleated fabric texture, cinematic 4K realism, vertical 9:16, --ar 9:16 --style raw`,n:`different identity, changed face, wrong eye color, wrong hair, altered body, flattened chest, exaggerated bust, oversexualized styling, bad hands, extra fingers, distorted shoes, plastic skin, CGI, illustration, cartoon, text, watermark, logo`}
+];
+
+/* ────────────────────────── BUILD ────────────────────────── */
+const db = {};
+
+function escH(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function buildSet(arr,containerId,startNum){
+  db[containerId]=arr;
+  const el=document.getElementById(containerId);
+  arr.forEach((item,i)=>{
+    const n=String(startNum+i).padStart(2,'0');
+    const card=document.createElement('div');
+    card.className='prompt-card';
+    card.innerHTML=`
+      <div class="card-header">
+        <div class="card-num-block">
+          <div class="card-num-big">${n}</div>
+          <div class="card-num-label">פרומפט</div>
+        </div>
+        <div class="card-meta">
+          <div class="card-scene-tag">Scene</div>
+          <div class="card-scene-label">${item.s}</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-section-label">Prompt — להעתקה</div>
+        <div class="prompt-box">
+          <pre class="prompt-text">${escH(item.p)}</pre>
+          <button class="copy-btn" onclick="doCopy(this,'${containerId}',${i},'p')">Copy</button>
+        </div>
+        <div class="card-section-label">Negative Prompt</div>
+        <div class="neg-box">
+          <div class="neg-label">Negative</div>
+          <p class="neg-text">${escH(item.n)}</p>
+        </div>
+      </div>`;
+    el.appendChild(card);
+  });
+}
+
+function doCopy(btn,cid,idx,type){
+  const text=type==='p'?db[cid][idx].p:db[cid][idx].n;
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='Copied ✓';btn.classList.add('ok');
+    setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('ok');},2000);
+  }).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=text;
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent='Copied ✓';btn.classList.add('ok');
+    setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('ok');},2000);
+  });
+}
+
+function switchGender(g,btn){
+  document.querySelectorAll('.gender-block').forEach(el=>el.classList.remove('active'));
+  document.getElementById('block-'+g).classList.add('active');
+  document.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+buildSet(menA,'m-a',1);
+buildSet(menB,'m-b',11);
+buildSet(menC,'m-c',15);
+buildSet(womenA,'w-a',1);
+</script>
+</body>
+</html>
